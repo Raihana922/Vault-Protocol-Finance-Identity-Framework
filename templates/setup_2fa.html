@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="viewport-content" style="max-width: 540px; margin: 4vh auto;">
+    <div class="kinetic-card" style="text-align: center;">
+        <h2 style="margin-bottom: 0.3rem;">MFA HANDSHAKE</h2>
+        <p style="color: var(--rt-text-muted); margin-bottom: 2rem; font-size: 0.85rem; font-family: 'Fira Code', monospace;">GLUE HARDWARE DEVICE TO LEDGER ACCOUNT.</p>
+
+        <div style="margin-bottom: 1.5rem; background: var(--rt-base); padding: 1.5rem; border-radius: 8px; border: 2px solid rgba(34, 197, 94, 0.4); display: inline-block;">
+            <p style="font-size: 0.75rem; color: var(--rt-mint); margin-bottom: 1rem; text-transform: uppercase;">AWAITING OPTICAL SCAN:</p>
+            <img src="data:image/png;base64,{{ qr_code }}" alt="MFA QR Code" style="width: 200px; height: 200px; border-radius: 4px; filter: contrast(1.2);">
+        </div>
+
+        <div style="margin-bottom: 2rem; padding: 1rem; background: rgba(34, 197, 94, 0.05); border: 2px dashed rgba(34, 197, 94, 0.3); overflow-wrap: break-word; word-break: break-all;">
+            <p style="font-size: 0.7rem; color: var(--rt-text-muted); margin-bottom: 0.5rem; text-transform: uppercase;">RAW MANUAL KEY</p>
+            <code class="mono-data" style="font-size: 1.1rem; letter-spacing: 0.2em; color: var(--rt-mint); word-break: break-all; white-space: normal;">{{ secret }}</code>
+        </div>
+
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group" style="text-align: left;">
+                <label for="otp_code">Return Hash (6-Digits)</label>
+                <input type="text" id="otp_code" name="otp_code" class="nm-input" placeholder="------" maxlength="6" required style="text-align: center; font-size: 1.5rem; letter-spacing: 0.5em; background: #000; color: #fff;">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">LOCK SYNCHRONIZATION</button>
+        </form>
+
+        <div style="margin-top: 2rem; font-size: 0.75rem; font-family: 'Fira Code', monospace;">
+            <a href="{{ url_for('dashboard') }}" style="color: var(--rt-crimson); text-decoration: none;">WARNING: BYPASS SECURITY (NOT RECOMMENDED)</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,17 @@
+# Yenepoya Internship Tracker - 2026
+
+| Task ID | Task Description | Project Title | Student Name | Campus ID | Specialization | Semester | Project Timeline | Start Date | End Date | Status | Feedback and Comments |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| TSK-01 | Requirement gathering and initial planning for the Identity Framework. | Finance Identity Framework | [Student Name] | [Campus ID] | [Specialization] | [Semester] | Week 1 | 2026-03-23 | 2026-03-25 | Completed | Requirements locked successfully. |
+| TSK-02 | Designing System Architecture, drafting HLD and LLD documents. | Finance Identity Framework | [Student Name] | [Campus ID] | [Specialization] | [Semester] | Week 1 | 2026-03-26 | 2026-03-28 | Completed | Architecture approved. |
+| TSK-03 | Environment setup, dependency installation, and Database schema design. | Finance Identity Framework | [Student Name] | [Campus ID] | [Specialization] | [Semester] | Week 2 | 2026-03-30 | 2026-03-31 | Completed | DB Models structured using SQLAlchemy. |
+| TSK-04 | Implementation of core User Authentication (Local Auth & Password Hashing). | Finance Identity Framework | [Student Name] | [Campus ID] | [Specialization] | [Semester] | Week 2 | 2026-04-01 | 2026-04-02 | Completed | Scrypt hashing integrated. |
+| TSK-05 | Integration of Google OAuth for Single Sign-On (SSO). | Finance Identity Framework | [Student Name] | [Campus ID] | [Specialization] | [Semester] | Week 2 | 2026-04-03 | 2026-04-04 | Completed | Authlib configured successfully. |
+| TSK-06 | Development of Multi-Factor Authentication (MFA/TOTP) flow. | Finance Identity Framework | [Student Name] | [Campus ID] | [Specialization] | [Semester] | Week 3 | 2026-04-06 | 2026-04-07 | Completed | pyotp QR code setup works. |
+| TSK-07 | Implementing Role-Based Access Control (Admin, Analyst, Auditor). | Finance Identity Framework | [Student Name] | [Campus ID] | [Specialization] | [Semester] | Week 3 | 2026-04-08 | 2026-04-09 | Completed | Role decorators implemented. |
+| TSK-08 | Building the Transaction Engine with Maker-Checker protocol logic. | Finance Identity Framework | [Student Name] | [Campus ID] | [Specialization] | [Semester] | Week 3 | 2026-04-10 | 2026-04-11 | Completed | Pending txn queues established. |
+| TSK-09 | Implementing Security Middlewares (Limiter, Talisman, CSP headers). | Finance Identity Framework | [Student Name] | [Campus ID] | [Specialization] | [Semester] | Week 4 | 2026-04-13 | 2026-04-14 | Completed | Anti-DDoS and security headers active. |
+| TSK-10 | Cryptographic Utilities integration for PII data encryption (Fernet). | Finance Identity Framework | [Student Name] | [Campus ID] | [Specialization] | [Semester] | Week 4 | 2026-04-15 | 2026-04-16 | Completed | DB layer encryption tested. |
+| TSK-11 | UI/UX Development: Dashboards for different user roles. | Finance Identity Framework | [Student Name] | [Campus ID] | [Specialization] | [Semester] | Week 4 | 2026-04-17 | 2026-04-18 | Completed | Jinja2 templates styled. |
+| TSK-12 | System Testing, bug fixes, and mock vulnerability scanning. | Finance Identity Framework | [Student Name] | [Campus ID] | [Specialization] | [Semester] | Week 5 | 2026-04-20 | 2026-04-21 | Completed | Issues resolved. |
+| TSK-13 | Finalizing documentation (HLD, Final Report) and project handover. | Finance Identity Framework | [Student Name] | [Campus ID] | [Specialization] | [Semester] | Week 5 | 2026-04-22 | 2026-04-24 | Completed | Ready for submission. |

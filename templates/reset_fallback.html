@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="viewport-content" style="display: flex; min-height: calc(100vh - 10rem); justify-content: center; align-items: center;">
+
+    <div class="kinetic-card" style="width: 100%; max-width: 500px; text-align: center; border: 4px solid var(--rt-crimson); box-shadow: 0 0 50px rgba(220, 38, 38, 0.2);">
+        <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--rt-crimson);">CRITICAL FALLBACK</h2>
+        <p style="color: var(--rt-text-muted); font-size: 0.85rem; margin-bottom: 2rem; font-family: 'Fira Code', monospace;">MFA BYPASS DETECTED. PREVIOUS CRYPTOGRAPHIC TRACES REQUIRED.</p>
+        
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group" style="text-align: left;">
+                <label>Hash Head <span style="color: var(--rt-crimson);">(FIRST 2 CHARS)</span></label>
+                <input type="text" name="prefix" class="nm-input" required maxlength="2" placeholder="Ex: XX" style="font-family: 'Fira Code', monospace; font-size: 1.5rem; letter-spacing: 0.2em; border-color: rgba(220, 38, 38, 0.4); color: white;">
+            </div>
+            
+            <div class="form-group" style="text-align: left; margin-bottom: 2.5rem;">
+                <label>Hash Tail <span style="color: var(--rt-crimson);">(LAST 2 CHARS)</span></label>
+                <input type="text" name="suffix" class="nm-input" required maxlength="2" placeholder="Ex: XX" style="font-family: 'Fira Code', monospace; font-size: 1.5rem; letter-spacing: 0.2em; border-color: rgba(220, 38, 38, 0.4); color: white;">
+            </div>
+
+            <button type="submit" class="btn btn-danger" style="width: 100%;">VALIDATE TRACES</button>
+        </form>
+
+        <div style="margin-top: 2rem; font-size: 0.75rem; font-family: 'Fira Code', monospace;">
+            <a href="{{ url_for('login') }}" style="color: var(--rt-text-muted); text-decoration: none;">[ DISCONNECT SESSION ]</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

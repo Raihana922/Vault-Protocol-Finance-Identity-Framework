@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="animation: slide-up-slam 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.5rem;">
+        <div>
+            <h1 style="font-size: 2.5rem; margin-bottom: 0.2rem; text-shadow: 0 0 20px rgba(34,197,94,0.3);">THE EXCHANGE</h1>
+            <p style="color: var(--rt-mint); font-family: 'Fira Code', monospace; font-size: 0.85rem; letter-spacing: 0.1em; text-transform: uppercase;">Operator: {{ current_user.full_name }}</p>
+        </div>
+    </div>
+
+    <!-- Bento Grid -->
+    <div class="bento-grid">
+        
+        <!-- Left Panel: Stats & Transaction -->
+        <div style="grid-column: span 5; display: flex; flex-direction: column; gap: 2rem;">
+            
+            <div class="kinetic-card" style="display: flex; justify-content: space-between; align-items: center; background: radial-gradient(circle at right, rgba(34,197,94,0.1), var(--rt-surface));">
+                <div>
+                    <p style="color: var(--rt-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 900;">Reserve Value</p>
+                    <div class="mono-data" style="color: var(--rt-text); font-size: 2.2rem; font-weight: 700;">${{ "%.2f"|format(total_balance) }}</div>
+                </div>
+                <div style="text-align: right;">
+                    <p style="color: var(--rt-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 900;">Accts</p>
+                    <div class="mono-data" style="color: var(--rt-mint); font-size: 2.2rem; font-weight: 700;">{{ accounts|length }}</div>
+                </div>
+            </div>
+
+            <div class="kinetic-card" style="flex-grow: 1; border-top: 4px solid var(--rt-bullion); display: flex; flex-direction: column;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2 style="font-size: 1.2rem;">Commit Funds</h2>
+                    <span class="badge badge-bullion">MFA ACTIVE</span>
+                </div>
+                
+                <form method="POST" action="{{ url_for('submit_transaction') }}" style="display: grid; gap: 1rem; flex-grow: 1;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Target Account</label>
+                        <select name="account_id" class="nm-input" required>
+                            <option value="" disabled selected>Select from active portfolio...</option>
+                            {% for account in accounts %}
+                            <option value="{{ account.id }}">{{ account.account_number }} ({{ account.holder_name }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Vector Direction</label>
+                            <select name="txn_type" class="nm-input" required>
+                                <option value="Credit">Credit (Deposit)</option>
+                                <option value="Debit">Debit (Withdrawal)</option>
+                                <option value="Transfer">Transfer</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Target Currency (FX Drop)</label>
+                            <select name="target_currency" class="nm-input" required>
+                                <option value="USD" selected>USD (US Dollar)</option>
+                                <option value="EUR">EUR (Euro)</option>
+                                <option value="GBP">GBP (British Pound)</option>
+                                <option value="JPY">JPY (Japanese Yen)</option>
+                                <option value="INR">INR (Indian Rupee)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0; position: relative;">
+                            <label>
+                                Volume 
+                                <span class="tooltip-trigger" style="display:inline-block; margin-left: 0.5rem; color: var(--rt-bullion); cursor: help; border-bottom: 1px dotted var(--rt-bullion); font-size: 0.8rem;">[? GUIDE]
+                                    <span class="tooltip-content">VOLUME FX LOGIC: <br><br>The volume you input here is the raw amount in the SOURCE currency. <br><br>If transferring 100 USD to a EUR account, you input 100. Our engine dynamically calculates the exchange rate and physically deposits ~92 EUR into the target portfolio.</span>
+                                </span>
+                            </label>
+                            <input type="number" name="amount" class="nm-input" step="0.01" min="0.01" placeholder="0.00" required>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Audit Memo</label>
+                        <input type="text" name="description" class="nm-input" placeholder="Trace logic...">
+                    </div>
+                    <div style="margin-top: auto; padding-top: 1.5rem;">
+                        <!-- The Jackpot Button (Now Escalates) -->
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">ESCALATE TO CHECKER</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right Panel: Accounts & Ledgers -->
+        <div style="grid-column: span 7; display: flex; flex-direction: column; gap: 2rem;">
+            
+            <div class="kinetic-card" style="padding: 1.5rem;">
+                <h2 style="font-size: 1.2rem; margin-bottom: 1rem;">Portfolio Manifest</h2>
+                {% if accounts %}
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>IDENT</th>
+                            <th>Entity / Class</th>
+                            <th>Current M0</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for account in accounts %}
+                        <tr>
+                            <td class="mono-data" style="font-size: 0.8rem; color: var(--rt-mint);">{{ account.account_number }}</td>
+                            <td>
+                                <div style="font-weight: 700;">{{ account.holder_name }}</div>
+                                <div style="font-size: 0.65rem; color: var(--rt-text-muted);">{{ account.account_type }}</div>
+                            </td>
+                            <td class="mono-data" style="font-weight: 700; font-size: 1.1rem;">
+                                ${{ "%.2f"|format(account.balance) }}
+                                <br><a href="{{ url_for('account_statement', account_id=account.id) }}" target="_blank" style="color: var(--rt-bullion); text-decoration: none; font-size: 0.65rem; border-bottom: 1px dashed var(--rt-bullion); display: inline-block; margin-top: 4px;">📄 STATEMENT</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p style="text-align: center; color: var(--rt-text-muted); padding: 2rem;">NO BINDINGS DETECTED</p>
+                {% endif %}
+            </div>
+
+            <div class="kinetic-card" style="padding: 1.5rem; flex-grow: 1;">
+                <h2 style="font-size: 1.2rem; margin-bottom: 1rem;">Real-Time Ledger</h2>
+                {% if transactions %}
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Hash Trace</th>
+                            <th>Action</th>
+                            <th>Delta</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for txn in transactions %}
+                        <tr>
+                            <td class="mono-data" style="font-size: 0.75rem; color: var(--rt-text-muted);">{{ txn.transaction_id }}</td>
+                            <td>
+                                {% if txn.txn_type == 'Credit' %}
+                                    <span class="badge badge-mint">{{ txn.txn_type }}</span>
+                                {% elif txn.txn_type == 'Debit' %}
+                                    <span class="badge badge-crimson">{{ txn.txn_type }}</span>
+                                {% else %}
+                                    <span class="badge badge-bullion">{{ txn.txn_type }}</span>
+                                {% endif %}
+                            </td>
+                            {% if txn.txn_type == 'Credit' %}
+                                <td class="mono-data" style="font-weight: 700; font-size: 1.1rem; color: var(--rt-mint);">+{{ "%.2f"|format(txn.amount) }} {{ txn.target_currency if txn.target_currency else 'USD' }}</td>
+                            {% else %}
+                                <td class="mono-data" style="font-weight: 700; font-size: 1.1rem; color: var(--rt-crimson);">-{{ "%.2f"|format(txn.amount) }} {{ txn.target_currency if txn.target_currency else 'USD' }}</td>
+                            {% endif %}
+                            <td>
+                                {% if txn.status == 'Flagged' %}
+                                    <span style="display:inline-block; animation: spin-slow 2s linear infinite; font-weight: 900; color: var(--rt-crimson);">!</span>
+                                    <span class="badge badge-crimson">LOCK</span>
+                                {% else %}
+                                    <span class="badge badge-muted">SYNCED</span>
+                                    <a href="{{ url_for('transaction_receipt', txn_id=txn.id) }}" target="_blank" style="margin-left: 0.5rem; color: var(--rt-mint); text-decoration: none; font-size: 0.8rem; border-bottom: 1px dashed var(--rt-mint);">🏷️ PDF</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p style="text-align: center; color: var(--rt-text-muted); padding: 2rem;">NULL DATA STREAM</p>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Velocity Graph (Phase 5) -->
+<div class="kinetic-card" style="margin-top: 2rem; border: 1px solid rgba(234, 179, 8, 0.3);">
+    <h2 style="font-size: 1.2rem; color: var(--rt-bullion); margin-bottom: 1rem;">📈 30-Day Portfolio Velocity</h2>
+    <div style="height: 300px; width: 100%;">
+        <canvas id="velocityChart"></canvas>
+    </div>
+</div>
+
+<!-- Graph Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const firstAccountId = document.querySelector('select[name="account_id"]').value;
+        if (firstAccountId) {
+            fetch('/api/portfolio/history?account_id=' + firstAccountId)
+                .then(res => res.json())
+                .then(data => {
+                    const ctx = document.getElementById('velocityChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: data.dates,
+                            datasets: [{
+                                label: 'Velocity (' + data.currency + ')',
+                                data: data.balances,
+                                borderColor: '#eab308',
+                                backgroundColor: 'rgba(234, 179, 8, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.4,
+                                fill: true,
+                                pointBackgroundColor: '#eab308',
+                                pointRadius: 3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    ticks: { color: 'rgba(248, 250, 252, 0.5)', font: { family: 'Fira Code' } },
+                                    grid: { color: 'rgba(234, 179, 8, 0.1)' }
+                                },
+                                x: {
+                                    ticks: { color: 'rgba(248, 250, 252, 0.5)', font: { family: 'Fira Code', size: 10 } },
+                                    grid: { display: false }
+                                }
+                            },
+                            plugins: {
+                                legend: { labels: { color: '#f8fafc', font: { family: 'Unbounded' } } }
+                            }
+                        }
+                    });
+                });
+        }
+    });
+</script>
+
+<style>
+    @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+</style>
+{% endblock %}

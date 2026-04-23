@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="viewport-content" style="max-width: 520px; margin: 6vh auto;">
+    <div class="kinetic-card">
+        <h2 style="text-align: center; margin-bottom: 0.3rem;">OPERATIVE ENROLLMENT</h2>
+        <p style="text-align: center; color: var(--rt-text-muted); margin-bottom: 2.5rem; font-size: 0.85rem; font-family: 'Fira Code', monospace;">GENERATE NEW NODE IDENTITY</p>
+
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+                <label for="full_name">Legal Entity Designation</label>
+                <input type="text" id="full_name" name="full_name" class="nm-input" placeholder="OPERATIVE-01" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Network Identifier</label>
+                <input type="email" id="email" name="email" class="nm-input" placeholder="op.01@reserve.net" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Cryptographic Key</label>
+                <div style="position: relative;">
+                    <input type="password" id="password" name="password" class="nm-input" placeholder="••••••••" required minlength="4">
+                    <button type="button" onclick="togglePassword('password')" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--rt-mint);">👁️</button>
+                </div>
+            </div>
+            <script>
+                function togglePassword(id) {
+                    const input = document.getElementById(id);
+                    input.type = input.type === 'password' ? 'text' : 'password';
+                }
+            </script>
+            <div class="form-group">
+                <label for="role">Assign Subnet Role</label>
+                <select id="role" name="role" class="nm-input" required>
+                    <option value="" disabled selected>Awaiting Access Assignment...</option>
+                    <option value="Analyst">Analyst (Ledger Execution)</option>
+                    <option value="Auditor">Auditor (Compliance Oversight)</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">COMPUTE HASH & ENROLL</button>
+        </form>
+
+        <div style="margin-top: 2.5rem; text-align: center; font-size: 0.8rem; color: var(--rt-text-muted);">
+            ALREADY BOUND TO NETWORK? <a href="{{ url_for('login') }}" style="color: var(--rt-mint); font-weight: 700; text-decoration: underline;">PING TERMINAL</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

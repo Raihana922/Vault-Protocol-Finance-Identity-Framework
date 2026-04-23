@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="viewport-content" style="display: flex; min-height: calc(100vh - 10rem); justify-content: center; align-items: center;">
+
+    <div class="kinetic-card" style="width: 100%; max-width: 450px; text-align: center; border-color: var(--rt-mint);">
+        <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--rt-mint);">VALIDATION COMPLETE</h2>
+        <p style="color: var(--rt-text-muted); font-size: 0.85rem; margin-bottom: 2rem; font-family: 'Fira Code', monospace;">INPUT NEW SYMMETRIC SEED TO RESTORE ACCESS.</p>
+        
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group" style="text-align: left;">
+                <label>New Root String</label>
+                <div style="position: relative;">
+                    <input type="password" id="npass" name="password" class="nm-input" required minlength="4">
+                    <button type="button" onclick="togglePassword('npass')" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--rt-mint);">👁️</button>
+                </div>
+            </div>
+            
+            <div class="form-group" style="text-align: left; margin-bottom: 2.5rem;">
+                <label>Verify Root String</label>
+                <div style="position: relative;">
+                    <input type="password" id="cpass" name="confirm_password" class="nm-input" required minlength="4">
+                    <button type="button" onclick="togglePassword('cpass')" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--rt-mint);">👁️</button>
+                </div>
+            </div>
+
+            <script>
+                function togglePassword(id) {
+                    const input = document.getElementById(id);
+                    input.type = input.type === 'password' ? 'text' : 'password';
+                }
+            </script>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">FLUSH & REBOOT</button>
+        </form>
+
+    </div>
+</div>
+{% endblock %}

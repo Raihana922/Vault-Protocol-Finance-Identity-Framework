@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="animation: slide-up-slam 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.5rem;">
+        <div>
+            <h1 style="font-size: 2.5rem; margin-bottom: 0.2rem; text-shadow: 0 0 20px rgba(234,179,8,0.3);">THE BASTION</h1>
+            <p style="color: var(--rt-bullion); font-family: 'Fira Code', monospace; font-size: 0.85rem; letter-spacing: 0.1em;">ADMINISTRATIVE ROOT: {{ current_user.full_name }}</p>
+        </div>
+    </div>
+
+    <div class="bento-grid" style="margin-bottom: 2rem;">
+        <div class="kinetic-card" style="grid-column: span 8; background: var(--rt-base); border-color: var(--rt-bullion); position: relative; overflow: hidden;">
+            <div style="position: absolute; right: -50px; top: -50px; width: 150px; height: 150px; background: radial-gradient(circle, rgba(234,179,8,0.3) 0%, transparent 70%);"></div>
+            <h3 style="font-size: 1.2rem; color: var(--rt-bullion); margin-bottom: 0.5rem;">System Containment Breach Control</h3>
+            <p style="font-family: 'Fira Code', monospace; font-size: 0.8rem; color: var(--rt-text-muted); margin-bottom: 1.5rem;">ENGAGE TO SEVER ALL NON-ADMINISTRATIVE SOCKET CONNECTIONS OVER THE RESERVE NETWORK.</p>
+            <form method="POST" action="{{ url_for('toggle_maintenance') }}" style="margin: 0;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn {% if config.get('MAINTENANCE_MODE') %}btn-outline{% else %}btn-danger{% endif %}" style="padding: 1rem 3rem; font-size: 1rem; letter-spacing: 0.2em;">
+                    {% if config.get('MAINTENANCE_MODE') %}
+                        LIFT QUARANTINE
+                    {% else %}
+                        INITIATE QUARANTINE PROTOCOL
+                    {% endif %}
+                </button>
+            </form>
+        </div>
+
+        <div class="kinetic-card" style="grid-column: span 4; display: flex; flex-direction: column; justify-content: center; align-items: center; border-left: 4px solid var(--rt-mint);">
+            <div class="mono-data" style="color: var(--rt-text); font-size: 3rem; font-weight: 700;">{{ users|length }}</div>
+            <p style="color: var(--rt-text-muted); font-size: 0.75rem; font-weight: 900; letter-spacing: 0.1em;">REGISTERED ENTITIES</p>
+        </div>
+    </div>
+
+    <!-- User Fleet -->
+    <div class="kinetic-card" style="margin-bottom: 2rem;">
+        <h2 style="font-size: 1.2rem; margin-bottom: 1rem;">Nodes & Personnel</h2>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Entity Socket</th>
+                    <th>Subnet Role</th>
+                    <th>MFA Status</th>
+                    <th>Root Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 900;">{{ user.full_name }}</div>
+                        <div class="mono-data" style="font-size: 0.75rem; color: var(--rt-mint);">{{ user.email }}</div>
+                    </td>
+                    <td>
+                        {% if user.role == 'Admin' %}
+                            <span class="badge badge-bullion">ROOT</span>
+                        {% elif user.role == 'Auditor' %}
+                            <span class="badge badge-crimson">OVERSIGHT</span>
+                        {% else %}
+                            <span class="badge badge-mint">WORKER</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.is_2fa_enabled %}
+                            <span class="badge badge-muted">SECURED</span>
+                        {% else %}
+                            <span style="color: var(--rt-crimson); font-weight: 900; font-family:'Fira Code'; font-size: 0.8rem;">BREACHED</span>
+                        {% endif %}
+                    </td>
+                    <td style="display: flex; gap: 0.5rem;">
+                        {% if user.is_2fa_enabled %}
+                        <form method="POST" action="{{ url_for('reset_2fa', user_id=user.id) }}" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.7rem; border-color: rgba(255,255,255,0.2); color: var(--rt-text);">WIPE MFA</button>
+                        </form>
+                        {% endif %}
+                        <form method="POST" action="{{ url_for('toggle_user', user_id=user.id) }}" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn {% if user.is_active %}btn-danger{% else %}btn-primary{% endif %}" style="padding: 0.4rem 0.8rem; font-size: 0.7rem;">
+                                {% if user.is_active %}TERMINATE{% else %}RE-AUTHORIZE{% endif %}
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Scrolling Audit Trailer -->
+    <div class="kinetic-card" style="background: var(--rt-base);">
+        <h2 style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--rt-mint);">RAW AUDIT BUFFER</h2>
+        <div style="max-height: 300px; overflow-y: auto; padding-right: 1rem; font-family: 'Fira Code', monospace; font-size: 0.75rem; color: var(--rt-mint); line-height: 1.8;">
+            {% for log in logs %}
+            <div style="display: flex; border-bottom: 1px dashed rgba(34,197,94,0.3); padding: 0.5rem 0;">
+                <span style="width: 150px; color: var(--rt-text-muted);">{{ log.timestamp.strftime('%H:%M:%S.%f')[:11] }}</span>
+                <span style="width: 140px; color: var(--rt-bullion);">[{{ log.ip_address }}]</span>
+                <span style="width: 100px;">{{ log.role[:3].upper() }}</span>
+                <span style="flex-grow: 1;">{{ log.action }} -> {{ log.financial_data_accessed or '0x0000' }}</span>
+            </div>
+            {% endfor %}
+            <div class="cursor-blink" style="margin-top: 0.5rem;">_</div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .cursor-blink { animation: blink 1s step-end infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+    
+    /* Scrollbar styling for that hacker terminal feel */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--rt-base); }
+    ::-webkit-scrollbar-thumb { background: var(--rt-mint); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #fff; }
+</style>
+{% endblock %}

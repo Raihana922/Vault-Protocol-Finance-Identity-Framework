@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="animation: slide-up-slam 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.5rem;">
+        <div>
+            <h1 style="font-size: 2.5rem; margin-bottom: 0.2rem; text-shadow: 0 0 20px rgba(220,38,38,0.3);">PANOPTICON</h1>
+            <p style="color: var(--rt-crimson); font-family: 'Fira Code', monospace; font-size: 0.85rem; letter-spacing: 0.1em;">AUDITOR OVERLORD: {{ current_user.full_name }}</p>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="bento-grid" style="margin-bottom: 2rem;">
+        <div class="kinetic-card" style="grid-column: span 4; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--rt-mint);">
+            <p style="color: var(--rt-text-muted); font-size: 0.7rem; font-weight: 900;">Volume Trace</p>
+            <div class="mono-data" style="color: var(--rt-mint); font-size: 2.5rem; font-weight: 700;">{{ transactions|length }}</div>
+        </div>
+        <div class="kinetic-card" style="grid-column: span 4; display: flex; justify-content: space-between; align-items: center; border: 2px solid var(--rt-crimson); background: radial-gradient(circle at right, rgba(220,38,38,0.2), var(--rt-surface)); box-shadow: 0 0 20px rgba(220,38,38,0.3);">
+            <p style="color: var(--rt-crimson); font-size: 0.7rem; font-weight: 900;">Active Threats</p>
+            <div class="mono-data" style="color: var(--rt-crimson); font-size: 2.5rem; font-weight: 700; display:flex; align-items: center; gap: 0.5rem;">
+                <span style="display:inline-block; animation: spin-slow 1s linear infinite; font-size: 1.5rem;">!</span>
+                {{ flagged|length }}
+            </div>
+        </div>
+        <div class="kinetic-card" style="grid-column: span 4; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--rt-bullion);">
+            <p style="color: var(--rt-text-muted); font-size: 0.7rem; font-weight: 900;">Assets Bound</p>
+            <div class="mono-data" style="color: var(--rt-bullion); font-size: 2.5rem; font-weight: 700;">{{ accounts|length }}</div>
+        </div>
+    </div>
+
+    <!-- Flagged Feed -->
+    {% if flagged %}
+    <div class="kinetic-card" style="margin-bottom: 2rem; border: 2px solid var(--rt-crimson); animation: pulse-red-border 2s infinite;">
+        <h2 style="font-size: 1.2rem; color: var(--rt-crimson); margin-bottom: 1rem;">🚨 CRITICAL ESCALATIONS</h2>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="color: var(--rt-crimson);">Violation Hash</th>
+                    <th style="color: var(--rt-crimson);">Type</th>
+                    <th style="color: var(--rt-crimson);">Volume</th>
+                    <th style="color: var(--rt-crimson);">Memo Trace</th>
+                    <th style="color: var(--rt-crimson);">Source Auth</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for txn in flagged %}
+                <tr style="background: rgba(220, 38, 38, 0.05);">
+                    <td class="mono-data" style="font-size: 0.8rem; color: var(--rt-crimson);">{{ txn.transaction_id }}</td>
+                    <td><span class="badge badge-crimson">{{ txn.txn_type }}</span></td>
+                    <td class="mono-data" style="font-weight: 700; color: var(--rt-crimson); font-size: 1.1rem;">${{ "%.2f"|format(txn.amount) }}</td>
+                    <td style="font-family: 'Fira Code', monospace; font-size: 0.8rem;">{{ txn.description or 'NULL' }}</td>
+                    <td class="mono-data" style="font-size: 0.8rem;">{{ txn.account.account_number if txn.account else '—' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Pending Checker Queue -->
+    {% if pending_transactions %}
+    <div class="kinetic-card" style="margin-bottom: 2rem; border: 2px solid var(--rt-mint); background: radial-gradient(circle at left, rgba(34,197,94,0.1), var(--rt-base));">
+        <h2 style="font-size: 1.2rem; color: var(--rt-mint); margin-bottom: 1rem;">⚖️ PENDING CHECKER QUEUE</h2>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="color: var(--rt-mint);">Maker Hash</th>
+                    <th style="color: var(--rt-mint);">Vector</th>
+                    <th style="color: var(--rt-mint);">Volume Escrowed</th>
+                    <th style="color: var(--rt-mint);">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ptxn in pending_transactions %}
+                <tr>
+                    <td class="mono-data" style="font-size: 0.8rem; color: var(--rt-mint);">{{ ptxn.transaction_id }}</td>
+                    <td><span class="badge badge-mint">{{ ptxn.txn_type }}</span></td>
+                    <td class="mono-data" style="font-weight: 700; color: var(--rt-mint); font-size: 1.1rem;">{{ "%.2f"|format(ptxn.amount) }} {{ ptxn.target_currency if ptxn.target_currency else 'USD' }}</td>
+                    <td style="display: flex; gap: 0.5rem;">
+                        <form method="POST" action="{{ url_for('approve_transaction', ptxn_id=ptxn.id) }}" style="margin: 0;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-outline" style="border-color: var(--rt-mint); color: var(--rt-mint); padding: 0.3rem 0.6rem; font-size: 0.7rem;">APPROVE</button>
+                        </form>
+                        <form method="POST" action="{{ url_for('reject_transaction', ptxn_id=ptxn.id) }}" style="margin: 0;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.7rem;">REJECT</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <div class="bento-grid" style="margin-bottom: 2rem;">
+        <!-- Account Oversight (Added for Phase 3 Statement) -->
+        <div class="kinetic-card" style="grid-column: span 12; border-bottom: 4px solid var(--rt-bullion);">
+            <h2 style="font-size: 1.2rem; margin-bottom: 1rem;">COMPLIANCE ACCOUNT OVERSIGHT</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
+                {% for account in accounts %}
+                <div style="padding: 1rem; background: rgba(1, 4, 9, 0.4); border-radius: 4px; border: 1px solid rgba(234, 179, 8, 0.2); display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <div class="mono-data" style="font-size: 0.75rem; color: var(--rt-bullion); font-weight: 700;">{{ account.account_number }}</div>
+                        <div style="font-weight: 900; font-size: 0.85rem; margin-top: 0.2rem;">{{ account.holder_name }}</div>
+                        <div style="font-size: 0.65rem; color: var(--rt-text-muted);">{{ account.account_type|upper }} — {{ account.currency_code }}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="mono-data" style="font-size: 0.9rem; font-weight: 700;">${{ "%.2f"|format(account.balance) }}</div>
+                        <a href="{{ url_for('account_statement', account_id=account.id) }}" target="_blank" style="color: var(--rt-bullion); text-decoration: none; font-size: 0.6rem; border-bottom: 1px dashed var(--rt-bullion); display: inline-block; margin-top: 5px; font-weight: bold;">📄 STATEMENT</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="bento-grid">
+        <div class="kinetic-card" style="grid-column: span 12;">
+            <h2 style="font-size: 1.2rem; margin-bottom: 1rem;">Master Ledger</h2>
+            {% if transactions %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Hash Trace</th>
+                        <th>Node</th>
+                        <th>Vector</th>
+                        <th>Delta</th>
+                        <th>Payload</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for txn in transactions %}
+                    <tr>
+                        <td class="mono-data" style="font-size: 0.8rem; color: var(--rt-text-muted);">{{ txn.transaction_id }}</td>
+                        <td class="mono-data" style="font-size: 0.8rem;">{{ txn.account.account_number if txn.account else '—' }}</td>
+                        <td><span class="badge badge-muted">{{ txn.txn_type }}</span></td>
+                        {% if txn.txn_type == 'Credit' %}
+                            <td class="mono-data" style="font-weight: 700; font-size: 1.1rem; color: var(--rt-mint);">{{ "%.2f"|format(txn.amount) }} {{ txn.target_currency if txn.target_currency else 'USD' }}</td>
+                        {% else %}
+                            <td class="mono-data" style="font-weight: 700; font-size: 1.1rem; color: var(--rt-crimson);">-{{ "%.2f"|format(txn.amount) }} {{ txn.target_currency if txn.target_currency else 'USD' }}</td>
+                        {% endif %}
+                        <td style="font-family: 'Fira Code', monospace; font-size: 0.75rem;">
+                            {{ txn.description or '—' }}
+                            <br><a href="{{ url_for('transaction_receipt', txn_id=txn.id) }}" target="_blank" style="color: var(--rt-mint); text-decoration: none; font-size: 0.7rem; border-bottom: 1px dashed var(--rt-mint); margin-top: 4px; display: inline-block;">🏷️ Receipt</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes pulse-red-border { 0%, 100% { box-shadow: 0 0 10px rgba(220,38,38,0.2); } 50% { box-shadow: 0 0 30px rgba(220,38,38,0.6); } }
+</style>
+{% endblock %}

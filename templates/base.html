@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Reserve Torrent — Financial Engine</title>
+    <!-- The Hype Ledger Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Unbounded:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <style>
+        /* ═══════════════════════════════════════════ */
+        /*  THE RESERVE TORRENT — Kinetic Currency UI  */
+        /* ═══════════════════════════════════════════ */
+        :root {
+            --rt-base: #010409;
+            --rt-surface: #062a1c;
+            --rt-mint: #22c55e;
+            --rt-bullion: #eab308;
+            --rt-crimson: #dc2626;
+            --rt-text: #f8fafc;
+            --rt-text-muted: #94a3b8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--rt-base);
+            color: var(--rt-text);
+            font-family: 'Unbounded', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* ── The Transaction Torrent Background (Canvas) ── */
+        #money-rain {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.15;
+            transition: opacity 0.5s;
+        }
+        body.torrent-active #money-rain { opacity: 0.6; }
+
+        /* Content layers over canvas */
+        .viewport-content { position: relative; z-index: 10; flex-grow: 1; display: flex; flex-direction: column; }
+
+        /* Typography */
+        h1, h2, h3, h4 { font-family: 'Unbounded', sans-serif; font-weight: 900; letter-spacing: -0.05em; text-transform: uppercase; }
+        p, a, span, label { font-family: 'Unbounded', sans-serif; font-weight: 400; }
+        .mono-data { font-family: 'Fira Code', monospace; font-variant-numeric: tabular-nums; }
+
+        /* ── Maintenance Overlay ── */
+        .maintenance-banner {
+            background: rgba(220, 38, 38, 0.15);
+            color: var(--rt-crimson);
+            border-bottom: 2px solid var(--rt-crimson);
+            text-align: center;
+            padding: 0.5rem;
+            font-weight: 900;
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        /* ── Navigation Bar ── */
+        nav {
+            padding: 1.5rem 3rem;
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(1, 4, 9, 0.8); backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(34, 197, 94, 0.2);
+            position: sticky; top: 0; z-index: 1000;
+        }
+
+        .logo {
+            font-weight: 900; font-size: 1.25rem; color: var(--rt-mint);
+            display: flex; align-items: center; gap: 0.75rem; letter-spacing: -0.05em;
+            text-shadow: 0 0 15px rgba(34,197,94,0.5);
+        }
+
+        nav a, nav span { color: var(--rt-text); text-decoration: none; }
+
+        .container { max-width: 1280px; margin: 2rem auto; padding: 0 2rem; flex-grow: 1; width: 100%; }
+
+        /* ══════════════════════════════════ */
+        /*   "INFINITE CASH STACK" CARD       */
+        /* ══════════════════════════════════ */
+        .kinetic-card {
+            background: var(--rt-surface);
+            border: 1px solid rgba(34, 197, 94, 0.15);
+            border-radius: 8px;
+            box-shadow: 
+                1px 1px 0px rgba(34, 197, 94, 0.2),
+                2px 2px 0px rgba(34, 197, 94, 0.2),
+                3px 3px 0px rgba(34, 197, 94, 0.2),
+                10px 10px 30px rgba(0,0,0,0.8);
+            padding: 2rem;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+        .kinetic-card:hover { transform: translateY(-5px) translateX(-2px); }
+
+        .bento-grid { display: grid; gap: 2rem; grid-template-columns: repeat(12, 1fr); }
+
+        /* ── Inputs ── */
+        .nm-input, select.nm-input {
+            width: 100%; padding: 1rem;
+            background: rgba(1,4,9,0.5);
+            border: 2px solid rgba(34, 197, 94, 0.2);
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem; color: var(--rt-mint); font-weight: 600;
+            outline: none; transition: all 0.2s ease;
+        }
+        .nm-input::placeholder { color: rgba(34, 197, 94, 0.3); font-family: 'Unbounded', sans-serif; font-weight: 400; }
+        .nm-input:focus { border-color: var(--rt-mint); box-shadow: 0 0 15px rgba(34, 197, 94, 0.3); background: rgba(34, 197, 94, 0.05); }
+
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--rt-text-muted); margin-bottom: 0.5rem; letter-spacing: 0.1em; }
+
+        /* ── Jackpot Buttons ── */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 0.85rem 2rem; font-weight: 900; font-size: 0.85rem;
+            border-radius: 4px; cursor: pointer; text-decoration: none;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            transition: all 0.2s ease; position: relative; overflow: hidden;
+            font-family: 'Unbounded', sans-serif;
+            border: 2px solid transparent;
+        }
+        .btn-primary {
+            background: var(--rt-mint); color: var(--rt-base);
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+        }
+        .btn-primary:hover {
+            background: #fff; box-shadow: 0 0 25px rgba(34, 197, 94, 0.8);
+            transform: scale(1.02);
+        }
+        .btn-primary:active { transform: scale(0.95); }
+        
+        .btn-outline { background: transparent; color: var(--rt-mint); border-color: var(--rt-mint); }
+        .btn-outline:hover { background: rgba(34, 197, 94, 0.1); box-shadow: 0 0 15px rgba(34, 197, 94, 0.3); }
+        
+        .btn-danger { background: var(--rt-crimson); color: white; box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4); }
+        .btn-danger:hover { background: #ff4444; box-shadow: 0 0 25px rgba(220, 38, 38, 0.8); }
+
+        /* ── Flash Messages ── */
+        .flash-messages { margin-bottom: 2rem; }
+        .flash {
+            background: var(--rt-surface); border: 2px solid; padding: 1rem 1.5rem;
+            border-radius: 4px; font-weight: 700; font-size: 0.8rem; margin-bottom: 0.75rem;
+            animation: slide-up-slam 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            box-shadow: 4px 4px 0 rgba(0,0,0,0.5);
+        }
+        @keyframes slide-up-slam { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .flash.error { border-color: var(--rt-crimson); color: var(--rt-crimson); }
+        .flash.success { border-color: var(--rt-mint); color: var(--rt-mint); }
+
+        /* ── Badges ── */
+        .badge { display: inline-block; padding: 0.3rem 0.6rem; border-radius: 2px; font-size: 0.65rem; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; font-family: 'Unbounded', sans-serif;}
+        .badge-mint { background: var(--rt-mint); color: var(--rt-base); }
+        .badge-bullion { background: var(--rt-bullion); color: var(--rt-base); }
+        .badge-crimson { background: var(--rt-crimson); color: white; }
+        .badge-muted { background: rgba(255,255,255,0.1); color: var(--rt-text-muted); }
+
+        /* ── Liquid Data Table ── */
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { text-align: left; padding: 1rem; font-size: 0.7rem; color: rgba(34, 197, 94, 0.5); border-bottom: 2px solid rgba(34, 197, 94, 0.2); }
+        .data-table td { padding: 1rem; border-bottom: 1px solid rgba(34, 197, 94, 0.1); }
+        .data-table tr:hover td { background: rgba(34, 197, 94, 0.05); }
+
+        /* Odometer specific styling */
+        .odometer-wrapper {
+            display: inline-block;
+            overflow: hidden;
+            height: 1.2em;
+            line-height: 1.2em;
+            vertical-align: bottom;
+        }
+        .odometer-digit { display: inline-block; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        /* Guide Tooltip */
+        .tooltip-trigger .tooltip-content {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: rgba(1, 4, 9, 0.95);
+            border: 2px solid var(--rt-bullion);
+            padding: 1rem;
+            width: 300px;
+            color: var(--rt-text);
+            font-size: 0.70rem;
+            line-height: 1.4;
+            border-radius: 4px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+            z-index: 1000;
+            font-family: 'Fira Code', monospace;
+            text-transform: none;
+            margin-bottom: 0.5rem;
+        }
+        .tooltip-trigger:hover .tooltip-content {
+            display: block;
+        }
+
+        footer { padding: 3rem; text-align: center; color: var(--rt-text-muted); font-size: 0.75rem; font-family: 'Fira Code', monospace; margin-top: auto; opacity: 0.5; }
+    </style>
+</head>
+<body class="role-{{ current_user.role if current_user.is_authenticated else 'Guest' }}">
+    <!-- Global Money Rain Canvas -->
+    <canvas id="money-rain"></canvas>
+
+    <div class="viewport-content">
+        {% if config.get('MAINTENANCE_MODE') %}
+            <div class="maintenance-banner">
+                🚨 THE RESERVE IS LOCKED — ADMINISTRATIVE BYPASS ONLY 🚨
+            </div>
+        {% endif %}
+
+        <nav>
+            <div class="logo">THE RESERVE TORRENT</div>
+            <div style="display: flex; align-items: center; gap: 1.5rem;">
+                {% if current_user.is_authenticated %}
+                    <span style="font-size: 0.75rem; color: var(--rt-text); display: flex; align-items: center; gap: 0.75rem; font-weight: 700;">
+                        {{ current_user.full_name }}
+                        <span class="badge badge-mint">{{ current_user.role }}</span>
+                    </span>
+                    <a href="{{ url_for('setup_2fa') }}" style="color: var(--rt-bullion); font-size: 0.75rem; font-weight: 900;">
+                        {% if current_user.is_2fa_enabled %}✓ SECURED{% else %}⚠ UNAUTHENTICATED{% endif %}
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="btn btn-outline" style="padding: 0.4rem 1rem; font-size: 0.7rem;">EJECT</a>
+                {% else %}
+                    <a href="{{ url_for('signup') }}" style="color: var(--rt-mint); font-weight: 700; font-size: 0.75rem;">NEW DEPOSIT</a>
+                    <a href="{{ url_for('login') }}" class="btn btn-primary" style="padding: 0.5rem 1.5rem; font-size: 0.75rem;">VAULT ACCESS</a>
+                {% endif %}
+            </div>
+        </nav>
+
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="flash {{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
+
+        <footer>
+            <p>> THE RESERVE TORRENT // KINETIC LEDGER // Y26</p>
+        </footer>
+    </div>
+
+    <script>
+        // --- 1. Transaction Torrent Particle Engine ---
+        const canvas = document.getElementById('money-rain');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+        let rainSpeedMultiplier = 1;
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        const symbols = ['$', '€', '£', '🏦', '¥', '₱'];
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * -height;
+                this.size = Math.random() * 20 + 10;
+                this.speed = Math.random() * 1 + 0.5;
+                this.symbol = symbols[Math.floor(Math.random() * symbols.length)];
+                this.opacity = Math.random() * 0.5 + 0.1;
+            }
+            update() {
+                this.y += this.speed * rainSpeedMultiplier;
+                if (this.y > height) {
+                    this.y = -50;
+                    this.x = Math.random() * width;
+                }
+            }
+            draw() {
+                ctx.fillStyle = `rgba(34, 197, 94, ${this.opacity})`;
+                ctx.font = `${this.size}px 'Fira Code'`;
+                ctx.fillText(this.symbol, this.x, this.y);
+            }
+        }
+
+        for(let i=0; i<70; i++) particles.push(new Particle());
+
+        function animateRain() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animateRain);
+        }
+        animateRain();
+
+        // Call this via JS on form submit
+        window.triggerTorrent = function() {
+            document.body.classList.add('torrent-active');
+            rainSpeedMultiplier = 15;
+            setTimeout(() => {
+                rainSpeedMultiplier = 1;
+                document.body.classList.remove('torrent-active');
+            }, 2000);
+        };
+
+        // --- 2. Odometer Spin Effect for Fira Code Data ---
+        document.querySelectorAll('.mono-data').forEach(el => {
+            const val = el.textContent.trim();
+            // simple spin effect on load by transitioning a translateY
+            el.innerHTML = `<span style="display:inline-block; animation: odometer 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);">${val}</span>`;
+        });
+
+        // Add CSS for odometer animation dynamically
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes odometer {
+                0% { transform: translateY(50%); opacity: 0; filter: blur(5px); }
+                100% { transform: translateY(0); opacity: 1; filter: blur(0); }
+            }
+            .confetti { position: fixed; pointer-events: none; z-index: 9999; color: var(--rt-mint); font-family: 'Fira Code'; font-weight: bold; animation: fall linear forwards; }
+            @keyframes fall {
+                to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // --- 3. Jackpot Button Effect ---
+        document.querySelectorAll('.btn-primary').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                // If it's a form submit, prevent default momentarily, run anim, then submit
+                const form = this.closest('form');
+                
+                // Explode particles
+                const rect = this.getBoundingClientRect();
+                const btnX = rect.left + rect.width / 2;
+                const btnY = rect.top + rect.height / 2;
+                
+                for(let i=0; i<30; i++) {
+                    const c = document.createElement('div');
+                    c.className = 'confetti';
+                    c.innerText = '$';
+                    c.style.left = btnX + 'px';
+                    c.style.top = btnY + 'px';
+                    c.style.fontSize = (Math.random() * 20 + 10) + 'px';
+                    
+                    const angle = Math.random() * Math.PI * 2;
+                    const velocity = Math.random() * 80 + 20;
+                    const tx = Math.cos(angle) * velocity;
+                    const ty = Math.sin(angle) * velocity - 50; // shoot up
+                    
+                    c.style.transform = `translate(${tx}px, ${ty}px)`;
+                    c.style.animationDuration = (Math.random() * 1 + 0.5) + 's';
+                    
+                    document.body.appendChild(c);
+                    setTimeout(() => c.remove(), 1500);
+                }
+
+                if(form && this.type === 'submit') {
+                    window.triggerTorrent();
+                }
+            });
+        });
+
+        // Background session guard
+        setInterval(() => {
+            fetch('/dashboard', { method: 'HEAD' }).then(res => {
+                if (res.status === 401) window.location.reload();
+            });
+        }, 300000);
+    </script>
+</body>
+</html>
